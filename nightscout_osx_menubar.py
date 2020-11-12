@@ -10,21 +10,24 @@ import requests
 import rumps
 import simplejson
 
+import time
+
 VERSION = '0.3.3'
 APP_NAME = 'Nightscout Menubar'
 PROJECT_HOMEPAGE = 'https://github.com/mddub/nightscout-osx-menubar'
 
 SGVS_PATH = '/api/v1/entries/sgv.json?count={count}'
+DEVICESTATUS_PATH = '/api/v1/devicestatus/'
 UPDATE_FREQUENCY_SECONDS = 20
 MAX_SECONDS_TO_SHOW_DELTA = 600
-HISTORY_LENGTH = 5
+HISTORY_LENGTH = 2
 MAX_BAD_REQUEST_ATTEMPTS = 3
 REQUEST_TIMEOUT_SECONDS = 2
 
 ################################################################################
 # Display options
 
-MENUBAR_TEXT = u"{sgv} {direction} {delta} [{time_ago}]"
+MENUBAR_TEXT = u"{devicestatus} {sgv} {direction} {delta} [{time_ago}]"
 MENU_ITEM_TEXT = u"{sgv} {direction} {delta} [{time_ago}]"
 
 def time_ago(seconds):
@@ -150,11 +153,51 @@ def get_entries(retries=0, last_exception=None):
     except simplejson.scanner.JSONDecodeError:
         return get_entries(retries + 1, "Nightscout returned bad JSON")
 
+def get_devicestatus(retries=0, last_exception=None):
+    if retries >= MAX_BAD_REQUEST_ATTEMPTS:
+        print "Retried too many times: %s" % last_exception
+        raise NightscoutException(last_exception)
+
+    try:
+        resp = requests.get(
+            config.get_host() + DEVICESTATUS_PATH,
+            # For the sake of keeping this portable without adding a lot of complexity, don't verify SSL certificates.
+            # https://github.com/kennethreitz/requests/issues/557
+            verify=False,
+            # Don't let bad connectivity cause the app to freeze
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        )
+    except requests.exceptions.Timeout, e:
+        # Don't retry timeouts, since the app is unresponsive while a request is in progress,
+        # and a new request will be made in UPDATE_FREQUENCY_SECONDS seconds anyway.
+        print "Timed out: %s" % repr(e)
+        raise NightscoutException(repr(e))
+    except requests.exceptions.RequestException, e:
+        return get_devicestatus(retries + 1, repr(e))
+
+    if resp.status_code != 200:
+        return get_devicestatus(retries + 1, "Nightscout returned status %s" % resp.status_code)
+
+    try:
+        arr = resp.json()
+        if type(arr) == list and (len(arr) == 0 or type(arr[0]) == dict):
+            return arr
+        else:
+            return get_devicestatus(retries + 1, "Nightscout returned bad data")
+    except simplejson.scanner.JSONDecodeError:
+        return get_devicestatus(retries + 1, "Nightscout returned bad JSON")        
+
 def filter_bgs(entries):
     bgs = [e.copy() for e in entries if 'sgv' in e]
     for bg in bgs:
         bg['sgv'] = int(bg['sgv'])
     return bgs
+
+def filter_statuses(devicestatus):
+    statuses = [e.copy() for e in devicestatus]
+    for status in statuses:
+        status['mills'] = status['mills']
+    return statuses
 
 def seconds_ago(timestamp):
     return int(datetime.now().strftime('%s')) - timestamp / 1000
@@ -173,18 +216,29 @@ def get_direction(entry):
 def get_delta(last, second_to_last):
     return ('+' if last['sgv'] >= second_to_last['sgv'] else u'−') + str(abs(maybe_convert_units(last['sgv'] - second_to_last['sgv'])))
 
-def get_menubar_text(entries):
+def get_menubar_text(entries, devicestatus):
     bgs = filter_bgs(entries)
+    # statuses = filter_statuses(devicestatus)
     last, second_to_last = bgs[0:2]
+    # last_loop, second_to_last_loop = statuses[0:2]
     if (last['date'] - second_to_last['date']) / 1000 <= MAX_SECONDS_TO_SHOW_DELTA:
         delta = get_delta(last, second_to_last)
     else:
         delta = '?'
+    last_loop = devicestatus[0]['mills']
+    # milliseconds = int(round(time.time() * 1000))
+    loop_delta = seconds_ago(last_loop)
+    loop_status = u'⚠'
+    if loop_delta < 300:
+        loop_status = u'↻'
+    if loop_delta > 1200:
+        loop_status = u'⚡'
     return MENUBAR_TEXT.format(
         sgv=maybe_convert_units(last['sgv']),
         delta=delta,
         direction=get_direction(last),
         time_ago=time_ago(seconds_ago(last['date'])),
+        devicestatus=loop_status,
     )
 
 def get_history_menu_items(entries):
@@ -205,13 +259,14 @@ def update_data(sender):
     try:
         try:
             entries = get_entries()
+            devicestatus = get_devicestatus()
         except NightscoutException, e:
             if config.get_host():
                 update_menu("<?>", [e.message[:100]])
             else:
                 update_menu("<Need settings>", [])
         else:
-            update_menu(get_menubar_text(entries), get_history_menu_items(entries))
+            update_menu(get_menubar_text(entries, devicestatus), get_history_menu_items(entries))
     except Exception, e:
         print "Nightscout data: " + simplejson.dumps(entries)
         print repr(e)

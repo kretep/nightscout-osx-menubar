@@ -2,9 +2,9 @@
 
 View CGM data from [Nightscout] in the OS X menu bar.
 
-**Latest version: 0.3.3**
+**Latest version: 0.4.0**
 
-![nightscout-osx-menubar screenshot](https://raw.githubusercontent.com/mddub/nightscout-osx-menubar/master/screenshot.png)
+![nightscout-osx-menubar screenshot](https://raw.githubusercontent.com/jasonlcrane/nightscout-osx-menubar/master/screenshot.png)
 
 ## Requirements
 
@@ -41,7 +41,7 @@ This uses [rumps], which provides a nice interface to PyObjC to create simple me
 **To run the app in development:**
 
 ```
-git clone https://github.com/mddub/nightscout-osx-menubar
+git clone https://github.com/jasonlcrane/nightscout-osx-menubar
 cd nightscout-osx-menubar
 pip install -r requirements.txt --user  # This may take a while
 python nightscout_osx_menubar.py
@@ -74,10 +74,14 @@ python setup.py py2app
 
 This project is intended for educational and informational purposes only. It is not FDA approved and should not be used to make medical decisions. It is neither affiliated with nor endorsed by Dexcom.
 
+## Thanks
+This is a fork of the [original version of this tool][original_version] from mddub.
+
 [Nightscout]: http://www.nightscout.info/
 [cgm-remote-monitor]: https://github.com/nightscout/cgm-remote-monitor
-[release-zip]: https://github.com/mddub/nightscout-osx-menubar/raw/master/release/nightscout-osx-menubar-0.3.3.zip
-[nightscout_osx_menubar.py]: https://github.com/mddub/nightscout-osx-menubar/blob/master/nightscout_osx_menubar.py
+[release-zip]: https://github.com/jasonlcrane/nightscout-osx-menubar/raw/master/release/nightscout-osx-menubar-0.4.0.zip
+[nightscout_osx_menubar.py]: https://github.com/jasonlcrane/nightscout-osx-menubar/blob/master/nightscout_osx_menubar.py
+[original_version]: https://github.com/mddub/nightscout-osx-menubar
 [rumps]: https://github.com/jaredks/rumps
 [py2app]: https://pythonhosted.org/py2app/
 [rumps-virtualenv]: https://github.com/jaredks/rumps/issues/9

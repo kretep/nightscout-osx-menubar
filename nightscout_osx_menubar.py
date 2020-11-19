@@ -20,23 +20,23 @@ SGVS_PATH = '/api/v1/entries/sgv.json?count={count}'
 DEVICESTATUS_PATH = '/api/v1/devicestatus/'
 UPDATE_FREQUENCY_SECONDS = 20
 MAX_SECONDS_TO_SHOW_DELTA = 600
-HISTORY_LENGTH = 2
+HISTORY_LENGTH = 20
 MAX_BAD_REQUEST_ATTEMPTS = 3
 REQUEST_TIMEOUT_SECONDS = 2
 
 ################################################################################
 # Display options
 
-MENUBAR_TEXT = u"{devicestatus} {sgv} {direction} {delta} [{time_ago}]"
-MENU_ITEM_TEXT = u"{sgv} {direction} {delta} [{time_ago}]"
+MENUBAR_TEXT = u"{devicestatus} {sgv}{direction} {delta}"
+MENU_ITEM_TEXT = u"{sgv}{direction} {delta} [{time_ago}]"
 
 def time_ago(seconds):
     if seconds >= 3600:
-        return "%sh" % (seconds / 3600)
+        return "%s h" % round((seconds / 3600),1)
     elif seconds >= 60:
-        return "%sm" % (seconds / 60)
+        return "%s min" % round((seconds / 60))
     else:
-        return "%ss" % seconds
+        return "%s s" % round(seconds,0)
 
 ################################################################################
 
@@ -78,7 +78,7 @@ class NightscoutConfig(object):
 config = NightscoutConfig(APP_NAME)
 
 def maybe_convert_units(mgdl):
-    return round(mgdl / 18.0, 1) if config.get_use_mmol() else mgdl
+    return round(mgdl / 18.018, 1) if config.get_use_mmol() else mgdl
 
 def update_menu(title, items):
     app.title = title

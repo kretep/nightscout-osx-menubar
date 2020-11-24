@@ -25,18 +25,19 @@ MAX_BAD_REQUEST_ATTEMPTS = 3
 REQUEST_TIMEOUT_SECONDS = 2
 
 ################################################################################
-# Display options
+# Display options        
 
 MENUBAR_TEXT = u"{devicestatus} {sgv}{direction} {delta}"
 MENU_ITEM_TEXT = u"{sgv}{direction} {delta} [{time_ago}]"
 
 def time_ago(seconds):
     if seconds >= 3600:
-        return "%s h" % round((seconds / 3600),1)
+        return "%s h" % round((seconds / 3600), 1)
     elif seconds >= 60:
-        return "%s min" % round((seconds / 60))
+        return "%s min" % int((seconds / 60))
     else:
-        return "%s s" % round(seconds,0)
+        return "%s s" % int(seconds)
+
 
 ################################################################################
 
@@ -268,7 +269,7 @@ def update_data(sender):
 def configuration_window(sender):
     window = rumps.Window(
         title='Nightscout Menubar Configuration',
-        message='Enter your nightscout URL below.\n\nIt probably looks like:\nhttps://SOMETHING.azurewebsites.net',
+        message='Enter your nightscout URL below.\n\nIt probably looks like:\nhttps://SOMETHING.herokuapp.com',
         dimensions=(320, 22),
     )
     window.default_text = config.get_host()

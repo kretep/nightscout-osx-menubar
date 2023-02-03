@@ -20,7 +20,7 @@ View CGM data from [Nightscout] in the OS X menu bar.
 
 ## Customization
 
-For now, if you want to customize the display and are comfortable making small edits to a Python file, you can edit [nightscout_osx_menubar.py] within the app package.
+If you want to customize the display and are comfortable making small edits to a Python file, you can edit `nightscout_osx_menubar.py` within the app package.
 
 In Finder, right-click on the app and click "Show Package Contents". Open `Contents/Resources/nightscout_osx_menubar.py` in a text editor. All the available configuration is at the top of the file.
 
@@ -32,7 +32,7 @@ For example:
 * Modify `time_ago` to return strings like "5m" instead of "5 min"
 * etc.
 
-This is not a long-term solution since your modifications won't survive a reinstall of the app. A better configuration system is in the works.
+This is not a long-term solution since your modifications won't survive a reinstall of the app.
 
 ## Development
 
@@ -40,8 +40,8 @@ This uses [rumps], which provides a nice interface to PyObjC to create simple me
 
 **To run the app in development:**
 
-```
-git clone https://github.com/jasonlcrane/nightscout-osx-menubar
+```bash
+git clone https://github.com/kretep/nightscout-osx-menubar
 cd nightscout-osx-menubar
 pip install -r requirements.txt --user  # This may take a while
 python nightscout_osx_menubar.py
@@ -52,19 +52,24 @@ python nightscout_osx_menubar.py
 
 **To build a standalone app in `dist/`:**
 
-```
+```bash
 python setup.py py2app
 ```
 
+It's normal that some modules cannot be found. The application might still run properly. If it doesn't, see the next section:
+
 ## Troubleshooting
 
-* If an error occurs while running the standalone app, some additional information was probably logged to the Console app (in Applications > Utilities).
+If an error occurs while running the standalone app, some additional information was probably logged to the console. To view the app's output in the terminal, start the app from the command line:
 
-* To view the app's output in the terminal and get extra debug information, start the app from the command line with the `--debug` flag:
-  ```
-  cd /Applications
-  ./Nightscout\ Menubar.app/Contents/MacOS/Nightscout\ Menubar --debug
-  ```
+```bash
+cd /Applications  # or wherever your application is
+./Nightscout\ Menubar.app/Contents/MacOS/Nightscout\ Menubar
+```
+
+Add the `--debug` flag to print additional debug information.
+
+If the application fails because a library cannot be loaded, such as `libffi.8.dylib`, this might be because your Python interpreter is running in a virtual environment, such as Conda. Try using a base install of Python to build the application.
 
 ## Notes
 
@@ -75,15 +80,15 @@ python setup.py py2app
 This project is intended for educational and informational purposes only. It is not FDA approved and should not be used to make medical decisions. It is neither affiliated with nor endorsed by Dexcom.
 
 ## Thanks
-This is a fork of the [original version of this tool][original_version] from mddub.
+This is a fork of a fork. The [original version of this tool from mddub][original_version], and [the fork from jasonlcrane][fork_version].
 
 [Nightscout]: http://www.nightscout.info/
 [cgm-remote-monitor]: https://github.com/nightscout/cgm-remote-monitor
-[release-zip]: https://github.com/jasonlcrane/nightscout-osx-menubar/raw/master/release/nightscout-osx-menubar-0.4.0.zip
-[nightscout_osx_menubar.py]: https://github.com/jasonlcrane/nightscout-osx-menubar/blob/master/nightscout_osx_menubar.py
+[releases]: https://github.com/kretep/nightscout-osx-menubar/releases
+[file an issue]: https://github.com/kretep/nightscout-osx-menubar/issues
 [original_version]: https://github.com/mddub/nightscout-osx-menubar
+[fork_version]: https://github.com/jasonlcrane/nightscout-osx-menubar
 [rumps]: https://github.com/jaredks/rumps
-[py2app]: https://pythonhosted.org/py2app/
 [rumps-virtualenv]: https://github.com/jaredks/rumps/issues/9
+[py2app]: https://pythonhosted.org/py2app/
 [xcode-cli]: http://stackoverflow.com/questions/20929689/git-clone-command-not-working-in-mac-terminal
-[file an issue]: https://github.com/mddub/nightscout-osx-menubar/issues

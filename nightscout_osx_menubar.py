@@ -10,33 +10,29 @@ import requests
 import rumps
 import simplejson
 
-import time
-
-VERSION = '0.4.0'
+VERSION = '0.5.0'
 APP_NAME = 'Nightscout Menubar'
-PROJECT_HOMEPAGE = 'https://github.com/jasonlcrane/nightscout-osx-menubar'
+PROJECT_HOMEPAGE = 'https://github.com/kretep/nightscout-osx-menubar'
 
 SGVS_PATH = '/api/v1/entries/sgv.json?count={count}'
 DEVICESTATUS_PATH = '/api/v1/devicestatus/'
 UPDATE_FREQUENCY_SECONDS = 20
 MAX_SECONDS_TO_SHOW_DELTA = 600
-HISTORY_LENGTH = 20
+HISTORY_LENGTH = 5
 MAX_BAD_REQUEST_ATTEMPTS = 3
 REQUEST_TIMEOUT_SECONDS = 2
 
 ################################################################################
 # Display options        
 
-MENUBAR_TEXT = "{devicestatus} {sgv}{direction} {delta}"
+MENUBAR_TEXT = "{devicestatus} {sgv}{direction} {delta} [{time_ago}]"
 MENU_ITEM_TEXT = "{sgv}{direction} {delta} [{time_ago}]"
 
 def time_ago(seconds):
     if seconds >= 3600:
-        return "%s h" % round((seconds / 3600), 1)
-    elif seconds >= 60:
-        return "%s min" % int((seconds / 60))
+        return "%sh" % round((seconds / 3600), 1)
     else:
-        return "%s s" % int(seconds)
+        return "%sm" % int((seconds / 60))
 
 
 ################################################################################
@@ -128,6 +124,7 @@ def get_entries(retries=0, last_exception=None):
     try:
         resp = requests.get(
             config.get_host() + SGVS_PATH.format(count=(HISTORY_LENGTH + 1)),
+            #TODO: https://github.com/psf/requests/issues/557#issuecomment-7149390
             # For the sake of keeping this portable without adding a lot of complexity, don't verify SSL certificates.
             # https://github.com/kennethreitz/requests/issues/557
             verify=False,
@@ -162,6 +159,7 @@ def get_devicestatus(retries=0, last_exception=None):
     try:
         resp = requests.get(
             config.get_host() + DEVICESTATUS_PATH,
+            #TODO: https://github.com/psf/requests/issues/557#issuecomment-7149390
             # For the sake of keeping this portable without adding a lot of complexity, don't verify SSL certificates.
             # https://github.com/kennethreitz/requests/issues/557
             verify=False,
@@ -218,8 +216,9 @@ def get_menubar_text(entries, devicestatus):
         delta = get_delta(last, second_to_last)
     else:
         delta = '?'
-    last_loop = devicestatus[0]['mills']
-    loop_delta = seconds_ago(last_loop)
+    #TODO: status doesn't contain mills?
+    #last_loop = devicestatus[0]['mills']
+    loop_delta = 60 #TODO: fix
     loop_status = '⚠'
     if loop_delta < 300:
         loop_status = '↻'
